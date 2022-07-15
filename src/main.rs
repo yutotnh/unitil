@@ -25,7 +25,9 @@ fn unify_tilde(contents: Vec<u8>) -> Vec<u8> {
     while i < size {
         if contents[i] & 0x80 == 0x00 {
             new_contents.push(contents[i]);
+
             i += 1;
+            continue;
         } else if contents[i] == 0x8F {
             if contents[i + 1] == 0xA2 && contents[i + 2] == 0xB7 {
                 new_contents.push(0xA1);
@@ -35,15 +37,18 @@ fn unify_tilde(contents: Vec<u8>) -> Vec<u8> {
                 new_contents.push(contents[i + 1]);
                 new_contents.push(contents[i + 2]);
             }
+
             i += 3;
+            continue;
         } else if contents[i] & 0x80 == 0x80 {
             new_contents.push(contents[i]);
             new_contents.push(contents[i + 1]);
 
             i += 2;
+            continue;
         }
     }
-    return new_contents;
+    new_contents
 }
 
 #[test]
