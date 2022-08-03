@@ -1,10 +1,19 @@
 use clap::Parser;
 use std::fs;
 
-fn main() -> std::io::Result<()> {
+fn main() {
     let args = Args::parse();
 
     let contents = fs::read(&args.file).expect("Something went wrong reading the file");
+
+    // ファイルのエンコーディングチェック(EUC-JP)
+    let (_, _, is_handring_error) = encoding_rs::EUC_JP.decode(&contents);
+
+    if is_handring_error {
+        eprintln!("Error decoding contents");
+        eprintln!("Only 'EUC-JP' is supported");
+        std::process::exit(1);
+    }
 
     if args.count {
         let count = count_tilde(contents);
@@ -12,10 +21,8 @@ fn main() -> std::io::Result<()> {
         println!("Fullwidth Tilde (0x8FA2B7) : {}", count.1);
     } else {
         let new_contents = unify_tilde(contents);
-        fs::write(&args.file, new_contents)?;
+        fs::write(&args.file, new_contents).expect("Something went wrong writing the file");
     }
-
-    Ok(())
 }
 
 #[derive(Debug, Parser)]
