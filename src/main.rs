@@ -7,9 +7,7 @@ fn main() {
     let contents = fs::read(&args.file).expect("Something went wrong reading the file");
 
     // ファイルのエンコーディングチェック(EUC-JP)
-    let (_, _, is_handring_error) = encoding_rs::EUC_JP.decode(&contents);
-
-    if is_handring_error {
+    if !is_encoding_euc_jp(&contents) {
         eprintln!("Error decoding contents");
         eprintln!("Only 'EUC-JP' is supported");
         std::process::exit(1);
@@ -40,6 +38,14 @@ struct Args {
     /// 全角チルダ(8F A2 B7)の登場回数を表示する
     #[clap(short, long)]
     count: bool,
+}
+
+/// 与えられた文字列のエンコーディングによって真偽値を返す
+/// - EUC-JP   -> true
+/// - それ以外 -> false
+fn is_encoding_euc_jp(bytes: &[u8]) -> bool {
+    let (_, _, is_handring_error) = encoding_rs::EUC_JP.decode(bytes);
+    !is_handring_error
 }
 
 /// 渡されたバイナリから全角チルダを検出して、
@@ -108,6 +114,14 @@ fn count_tilde(contents: Vec<u8>) -> (u64, u64) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_encoding_euc_jp() {
+        // '～'(Fullwidth tilde) -> 0x8F A2 B7
+        assert!(is_encoding_euc_jp(&[0x8F, 0xA2, 0xB7]));
+        // 'あ' (UTF-8))
+        assert!(!is_encoding_euc_jp(&[0xe3, 0x81, 0x82]));
+    }
 
     #[test]
     fn test_unify_tilde() {
