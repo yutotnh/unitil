@@ -1,7 +1,12 @@
 [package]
 name = "unitil"
 version = "0.1.0"
+authors = ["yutotnh <57719497+yutotnh@users.noreply.github.com>"]
 edition = "2021"
+description = "EUC-JPの全角チルダを波ダッシュに変換するツール"
+lisence-file = "LICENSE"
+repository = "https://github.com/yutotnh/unitil"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
