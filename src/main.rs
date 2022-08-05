@@ -32,10 +32,11 @@ fn main() {
     arg_required_else_help = true,
 )]
 struct Args {
+    /// File
     #[clap(required = true)]
     file: String,
 
-    /// 全角チルダ(8F A2 B7)の登場回数を表示する
+    /// 全角チルダと波ダッシュの登場回数を表示する
     #[clap(short, long)]
     count: bool,
 }
