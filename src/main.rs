@@ -29,7 +29,7 @@ fn run() -> Result<(), ()> {
         let count = count_tilde(contents);
         println!("Wave dash       (0xA1C1)   : {}", count.0);
         println!("Fullwidth Tilde (0x8FA2B7) : {}", count.1);
-        return Ok(());
+        Ok(())
     } else {
         let new_contents = unify_tilde(contents);
         if let Err(err) = fs::write(&args.file, new_contents) {
