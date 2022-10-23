@@ -2,24 +2,41 @@ use clap::Parser;
 use std::fs;
 
 fn main() {
-    let args = Args::parse();
+    match run() {
+        Err(_) => std::process::exit(1),
+        Ok(_) => std::process::exit(0),
+    }
+}
 
-    let contents = fs::read(&args.file).expect("Something went wrong reading the file");
+fn run() -> Result<(), ()> {
+    let args = Args::parse();
+    let contents = match fs::read(&args.file) {
+        Ok(contents) => contents,
+        Err(err) => {
+            eprintln!("Error reading file: {}", err);
+            return Err(());
+        }
+    };
 
     // ファイルのエンコーディングチェック(EUC-JP)
     if !is_encoding_euc_jp(&contents) {
         eprintln!("Error decoding contents");
         eprintln!("Only 'EUC-JP' is supported");
-        std::process::exit(1);
+        return Err(());
     }
 
     if args.count {
         let count = count_tilde(contents);
         println!("Wave dash       (0xA1C1)   : {}", count.0);
         println!("Fullwidth Tilde (0x8FA2B7) : {}", count.1);
+        return Ok(());
     } else {
         let new_contents = unify_tilde(contents);
-        fs::write(&args.file, new_contents).expect("Something went wrong writing the file");
+        if let Err(err) = fs::write(&args.file, new_contents) {
+            println!("Error writing file: {}", err);
+            return Err(());
+        }
+        Ok(())
     }
 }
 
