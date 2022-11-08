@@ -26,16 +26,23 @@ fn run() -> Result<(), ()> {
     }
 
     if args.count {
-        let count = count_tilde(contents);
+        let count = count_tilde(&contents);
         println!("Wave dash       (0xA1C1)   : {}", count.0);
         println!("Fullwidth Tilde (0x8FA2B7) : {}", count.1);
         Ok(())
     } else {
-        let new_contents = unify_tilde(contents);
+        let new_contents = unify_tilde(&contents);
+
+        if new_contents == contents {
+            println!("No fullwidth dash in {}", &args.file);
+            return Ok(());
+        }
+
         if let Err(err) = fs::write(&args.file, new_contents) {
             println!("Error writing file: {}", err);
             return Err(());
         }
+
         Ok(())
     }
 }
@@ -68,7 +75,7 @@ fn is_encoding_euc_jp(bytes: &[u8]) -> bool {
 
 /// 渡されたバイナリから全角チルダを検出して、
 /// 全角チルダを波ダッシュに置き換えたバイナリを返す
-fn unify_tilde(contents: Vec<u8>) -> Vec<u8> {
+fn unify_tilde(contents: &[u8]) -> Vec<u8> {
     let size = contents.len();
     let mut i = 0;
     let mut new_contents: Vec<u8> = Vec::new();
@@ -102,7 +109,7 @@ fn unify_tilde(contents: Vec<u8>) -> Vec<u8> {
 }
 
 /// 渡されたバイナリから波ダッシュと全角チルダの個数をそれぞれ数えて返す
-fn count_tilde(contents: Vec<u8>) -> (u64, u64) {
+fn count_tilde(contents: &[u8]) -> (u64, u64) {
     let mut wave_dash_count: u64 = 0;
     let mut full_width_tilde_count: u64 = 0;
 
@@ -147,10 +154,10 @@ mod tests {
         // '～'(Wave dash) -> 0xA1 C1
         // 全角チルダを波ダッシュに変更
         // 渡されたバイナリは全角チルダ1つのみの場合
-        assert_eq!(unify_tilde(vec![0x8F, 0xA2, 0xB7]), [0xA1, 0xC1]);
+        assert_eq!(unify_tilde(&[0x8F, 0xA2, 0xB7]), [0xA1, 0xC1]);
         // 渡されたバイナリが全角チルダ2つのみの場合
         assert_eq!(
-            unify_tilde(vec![0x8F, 0xA2, 0xB7, 0x8F, 0xA2, 0xB7]),
+            unify_tilde(&[0x8F, 0xA2, 0xB7, 0x8F, 0xA2, 0xB7]),
             [0xA1, 0xC1, 0xA1, 0xC1]
         );
 
@@ -159,14 +166,14 @@ mod tests {
         // '苤' -> 0x8F D7 D4
         // 渡されたバイナリ中に全角チルダ1つと全角チルダ以外が含まれている場合
         assert_eq!(
-            unify_tilde(vec![0x61, 0xA4, 0xA2, 0x8F, 0xA2, 0xB7, 0x8F, 0xD7, 0xD4]),
+            unify_tilde(&[0x61, 0xA4, 0xA2, 0x8F, 0xA2, 0xB7, 0x8F, 0xD7, 0xD4]),
             [0x61, 0xA4, 0xA2, 0xA1, 0xC1, 0x8F, 0xD7, 0xD4]
         );
 
         // '\n' -> 0x0A
         // 渡されたバイナリ中に全角チルダが1つもない場合
         assert_eq!(
-            unify_tilde(vec![0x61, 0xA4, 0xA2, 0x8F, 0xD7, 0xD4, 0x0A]),
+            unify_tilde(&[0x61, 0xA4, 0xA2, 0x8F, 0xD7, 0xD4, 0x0A]),
             [0x61, 0xA4, 0xA2, 0x8F, 0xD7, 0xD4, 0x0A]
         );
     }
@@ -176,19 +183,16 @@ mod tests {
         // '～'(Wave dash) -> 0xA1 C1
         // 波ダッシュを数える
         // 1つの場合
-        assert_eq!(count_tilde(vec![0xA1, 0xC1]), (1, 0));
+        assert_eq!(count_tilde(&[0xA1, 0xC1]), (1, 0));
         // 2つの場合
-        assert_eq!(count_tilde(vec![0xA1, 0xC1, 0xA1, 0xC1]), (2, 0));
+        assert_eq!(count_tilde(&[0xA1, 0xC1, 0xA1, 0xC1]), (2, 0));
 
         // '～'(Fullwidth tilde) -> 0x8F A2 B7
         // 全角チルダを数える
         // 1つの場合
-        assert_eq!(count_tilde(vec![0x8F, 0xA2, 0xB7]), (0, 1));
+        assert_eq!(count_tilde(&[0x8F, 0xA2, 0xB7]), (0, 1));
         // 2つの場合
-        assert_eq!(
-            count_tilde(vec![0x8F, 0xA2, 0xB7, 0x8F, 0xA2, 0xB7]),
-            (0, 2)
-        );
+        assert_eq!(count_tilde(&[0x8F, 0xA2, 0xB7, 0x8F, 0xA2, 0xB7]), (0, 2));
 
         // 'a'  -> 0x61
         // 'あ' -> 0xA4 A2
@@ -196,16 +200,11 @@ mod tests {
         // 波ダッシュと全角チルダ以外が存在するの文字列中に
         // 波ダッシュと全角チルダが1つずつある場合
         assert_eq!(
-            count_tilde(vec![
-                0x61, 0xA4, 0xA2, 0x8F, 0xA2, 0xB7, 0xA1, 0xC1, 0x8F, 0xD7, 0xD4
-            ]),
+            count_tilde(&[0x61, 0xA4, 0xA2, 0x8F, 0xA2, 0xB7, 0xA1, 0xC1, 0x8F, 0xD7, 0xD4]),
             (1, 1)
         );
         // 波ダッシュと全角チルダ以外が存在するの文字列中に
         // 波ダッシュと全角チルダが1つもない場合
-        assert_eq!(
-            count_tilde(vec![0x61, 0xA4, 0xA2, 0x8F, 0xD7, 0xD4]),
-            (0, 0)
-        );
+        assert_eq!(count_tilde(&[0x61, 0xA4, 0xA2, 0x8F, 0xD7, 0xD4]), (0, 0));
     }
 }
