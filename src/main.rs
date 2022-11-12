@@ -10,40 +10,52 @@ fn main() {
 
 fn run() -> Result<(), ()> {
     let args = Args::parse();
-    let contents = match fs::read(&args.file) {
-        Ok(contents) => contents,
-        Err(err) => {
-            eprintln!("Error reading file: {}", err);
-            return Err(());
-        }
-    };
+    let mut has_error = false;
 
-    // ファイルのエンコーディングチェック(EUC-JP)
-    if !is_encoding_euc_jp(&contents) {
-        eprintln!("Error decoding contents");
-        eprintln!("Only 'EUC-JP' is supported");
-        return Err(());
+    for file in args.file.iter() {
+        println!("{}:", &file);
+
+        let contents = match fs::read(file) {
+            Ok(contents) => contents,
+            Err(err) => {
+                eprintln!("    {}", err);
+                has_error = true;
+                continue;
+            }
+        };
+
+        // ファイルのエンコーディングチェック(EUC-JP)
+        if !is_encoding_euc_jp(&contents) {
+            eprintln!("    Error decoding contents");
+            eprintln!("    Only 'EUC-JP' is supported");
+            has_error = true;
+            continue;
+        }
+
+        if args.count {
+            let count = count_tilde(&contents);
+            println!("    Wave dash       (0xA1C1)   : {}", count.0);
+            println!("    Fullwidth Tilde (0x8FA2B7) : {}", count.1);
+            continue;
+        } else {
+            let new_contents = unify_tilde(&contents);
+
+            if new_contents == contents {
+                println!("    No fullwidth dash in {}", &file);
+                continue;
+            }
+
+            if let Err(err) = fs::write(file, new_contents) {
+                println!("    {}", err);
+                has_error = true;
+                continue;
+            }
+        }
     }
 
-    if args.count {
-        let count = count_tilde(&contents);
-        println!("Wave dash       (0xA1C1)   : {}", count.0);
-        println!("Fullwidth Tilde (0x8FA2B7) : {}", count.1);
-        Ok(())
-    } else {
-        let new_contents = unify_tilde(&contents);
-
-        if new_contents == contents {
-            println!("No fullwidth dash in {}", &args.file);
-            return Ok(());
-        }
-
-        if let Err(err) = fs::write(&args.file, new_contents) {
-            println!("Error writing file: {}", err);
-            return Err(());
-        }
-
-        Ok(())
+    match has_error {
+        true => Err(()),
+        false => Ok(()),
     }
 }
 
@@ -58,7 +70,7 @@ fn run() -> Result<(), ()> {
 struct Args {
     /// File
     #[clap(required = true)]
-    file: String,
+    file: Vec<String>,
 
     /// 全角チルダと波ダッシュの登場回数を表示する
     #[clap(short, long)]
