@@ -32,3 +32,9 @@ $ unitil a.txt --count
 Wave dash       (0xA1C1)   : 0
 Fullwidth Tilde (0x8FA2B7) : 2
 ```
+
+## Install
+
+```bash
+cargo install --git  https://github.com/yutotnh/unitil
+```
