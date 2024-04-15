@@ -12,7 +12,7 @@ readme = "README.md"
 
 [dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
-encoding_rs = "0.8.33"
+encoding_rs = "0.8.34"
 
 [dev-dependencies]
 assert_cmd = "2.0.14"
