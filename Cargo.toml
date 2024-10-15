@@ -15,4 +15,4 @@ clap = { version = "4.5.20", features = ["derive"] }
 encoding_rs = "0.8.34"
 
 [dev-dependencies]
-assert_cmd = "2.0.14"
+assert_cmd = "2.0.16"
