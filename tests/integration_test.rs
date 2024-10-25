@@ -1,5 +1,3 @@
-use std::io::{stdout, Read, Write};
-
 use assert_cmd::Command;
 use tempfile::tempdir;
 
