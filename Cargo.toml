@@ -1,6 +1,6 @@
 [package]
 name = "unitil"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["yutotnh <57719497+yutotnh@users.noreply.github.com>"]
 edition = "2021"
 description = "EUC-JPの全角チルダを波ダッシュに変換するツール"
