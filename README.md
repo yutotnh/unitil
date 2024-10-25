@@ -38,3 +38,7 @@ Fullwidth Tilde (0x8FA2B7) : 2
 ```bash
 cargo install --git  https://github.com/yutotnh/unitil
 ```
+
+## License
+
+MIT License

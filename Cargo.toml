@@ -4,7 +4,7 @@ version = "0.2.0"
 authors = ["yutotnh <57719497+yutotnh@users.noreply.github.com>"]
 edition = "2021"
 description = "EUC-JPの全角チルダを波ダッシュに変換するツール"
-lisence-file = "LICENSE"
+license = "MIT"
 repository = "https://github.com/yutotnh/unitil"
 readme = "README.md"
 
