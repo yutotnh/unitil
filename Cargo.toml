@@ -7,6 +7,7 @@ description = "EUC-JPの全角チルダを波ダッシュに変換するツー�
 license = "MIT"
 repository = "https://github.com/yutotnh/unitil"
 readme = "README.md"
+rust-version = "1.74.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
